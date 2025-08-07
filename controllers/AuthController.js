@@ -1,5 +1,4 @@
 import Connection from "../models/db_connection.js"
-import { expressjwt } from "express-jwt";
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 // https://www.npmjs.com/package/express-jwt
@@ -38,7 +37,6 @@ const signin=(req,res)=>{
         [username],
         (err,result)=>{
             if(err){
-                console.error(err);
                 res.status(500).json(err);
             }else{
                 const userNotFound=result.length===0;
@@ -51,10 +49,11 @@ const signin=(req,res)=>{
                             res.status(500).json(err);
                         }else{
                             if(result){
-                                const user={userid:id,username:username}
-                                res.status(200).json(user)
+                                const payload={userid:id,username:username}
+                                const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
+                                res.status(200).json({token})
                             }else{
-                                res.status(500).json(`Wrong password`)
+                                res.status(401).json(`Wrong password`)
                             }
                         }
                     });
