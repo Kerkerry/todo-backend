@@ -1,7 +1,6 @@
 import Connection from "../models/db_connection.js";
 const AddTodo=(req,res)=>{        
         const {taskName,description, priority,isCompleted,dueDate, category,tags}=req.body;
-        
         const userId=req.auth.userid;
         Connection.query(
             `INSERT INTO todos (id,user_id,task_name, description, is_completed, due_date, priority, category, tags) 
@@ -10,9 +9,7 @@ const AddTodo=(req,res)=>{
             (error,result)=>{
                 if(error){
                     res.status(500).json(`Error occured while creating task: ${error}`)
-                    console.error(`Error occured while creating a task: ${error}`);
                 }else{
-                    console.log(`Successfully created the task: ${result}`);
                     res.status(201).json(result)
                 }
             }
@@ -20,11 +17,12 @@ const AddTodo=(req,res)=>{
 }
 
 const toggleTodo=(req,res)=>{
+    const userId=req.auth.userid;
     const {id}=req.params;
     const {is_completed}=JSON.parse(req.body.todo);
     Connection.query(
-        `UPDATE todos SET is_completed=? WHERE id=?`,
-        [!is_completed,id],
+        `UPDATE todos SET is_completed=? WHERE id=? AND user_id=?`,
+        [!is_completed,id,userId],
         (error,result)=>{
             if(error){
                 console.error(`Error changing is_completed field of todo ${id}: ${error}`);
@@ -36,10 +34,11 @@ const toggleTodo=(req,res)=>{
 }
 
 const deleteTodo=(req,res)=>{
+    const userId=req.auth.userid;
     const {id}=req.params
     Connection.query(
-        `DELETE FROM todos WHERE id=?`,
-        [id],
+        `DELETE FROM todos WHERE id=? AND user_id=?`,
+        [id,userId],
         (error,result)=>{
             if(error){
                 console.error(`Error deleting todo with id ${id}: ${error}`);
@@ -51,8 +50,10 @@ const deleteTodo=(req,res)=>{
 }
 
 const getTodos=(req,res)=>{
+    const userId=req.auth.userid;
     Connection.query(
-        `SELECT * FROM todos`,
+        `SELECT * FROM todos WHERE user_id=?`,
+        [userId],
         (error,result)=>{
             if(error){
                 console.error(`Error getting todos: ${error}`);
@@ -72,6 +73,7 @@ const getTodos=(req,res)=>{
 }
 
 const updateTodo=(req,res)=>{
+    const userId=req.auth.userid;
     const {id}=req.params;
     const {taskName,description, priority,isCompleted,dueDate,category,tags}=req.body;
     const updates = [];
