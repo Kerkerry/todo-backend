@@ -1,14 +1,7 @@
-import Connection from "../models/db_connection.js"
+
 
 const AddTodo=(req,res)=>{        
         const {taskName,description, priority,isCompleted,dueDate, category,tags}=req.body;
-        // const taskName="Flutter State Management"
-        // const description="Learn how to use bloc in flutter to manage state management"
-        // const isCompleted=false;
-        // const dueDate="2025-09-22"
-        // const priority="Medium"
-        // const category="Learning"
-        // const tags=`["Programming","Project","Leisure","Hobby"]`
         Connection.query(
             `INSERT INTO todos (id, task_name, description, is_completed, due_date, priority, category, tags) 
             VALUES(?,?,?,?,?,?,?,?);`,
@@ -78,16 +71,6 @@ const getTodos=(req,res)=>{
 const updateTodo=(req,res)=>{
     const {id}=req.params;
     const {taskName,description, priority,isCompleted,dueDate,category,tags}=req.body;
-    // const taskName="Call client John"
-    // const id='1722605786002'
-    // const description="Ask wether the item ordered was delivered successfully"
-    // const isCompleted=false;
-    // const dueDate="2025-08-14"
-    // const priority="Low"
-    // const category="Work"
-    // const tags=`["Communication", "Order"]`
-      // Build the SET clause dynamically based on what's provided in the request body
-    // This allows partial updates (e.g., just toggle is_completed)
     const updates = [];
     const params = [];
 
