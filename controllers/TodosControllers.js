@@ -41,8 +41,10 @@ const deleteTodo=(req,res)=>{
         [id,userId],
         (error,result)=>{
             if(error){
+                res.status(500).json(error)
                 console.error(`Error deleting todo with id ${id}: ${error}`);
             }else{
+                res.status(204).json(`Succefuly deleted todo ${id}`)
                 console.log(`Succefuly deleted todo ${id}`);
             }
         }
@@ -50,12 +52,13 @@ const deleteTodo=(req,res)=>{
 }
 
 const getTodos=(req,res)=>{
-    const userId=req.auth.userid;
+    const userId=req.auth.userid;    
     Connection.query(
         `SELECT * FROM todos WHERE user_id=?`,
         [userId],
         (error,result)=>{
             if(error){
+                res.status(500).json(error)
                 console.error(`Error getting todos: ${error}`);
             }else{
                 const todos=result.map(row=>{
@@ -65,11 +68,11 @@ const getTodos=(req,res)=>{
                         is_completed:!!row.is_completed
                     }
                 })
-
-                res.json({user:req.auth,todos:todos})
+                res.status(200).json({user:req.auth,todos:todos})
             }
         }
     )
+    return;
 }
 
 const updateTodo=(req,res)=>{
