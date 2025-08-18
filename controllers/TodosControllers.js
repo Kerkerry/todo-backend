@@ -17,38 +17,38 @@ const AddTodo=(req,res)=>{
 }
 
 const toggleTodo=(req,res)=>{
-    const userId=req.auth.userid;
-    const {id}=req.params;
-    const {is_completed}=JSON.parse(req.body.todo);
+    const {id,user_id,is_completed}=req.body[0]
+
     Connection.query(
         `UPDATE todos SET is_completed=? WHERE id=? AND user_id=?`,
-        [!is_completed,id,userId],
+        [!is_completed,id,user_id],
         (error,result)=>{
             if(error){
-                console.error(`Error changing is_completed field of todo ${id}: ${error}`);
+                res.status(500).json({message:'An error occured'})
             }else{
-                console.log(`Successfully updated is_completed field for todo ${id}: ${result}`);
+                res.status(200).json({message:'Toggled successfuly'})
             }
         }
     )
 }
 
 const deleteTodo=(req,res)=>{
-    const userId=req.auth.userid;
-    const {id}=req.params
+    const {id}=req.params;
+    const {userid}=req.auth;
+    const sql=`DELETE FROM todos WHERE id=? AND user_id=?`;
     Connection.query(
-        `DELETE FROM todos WHERE id=? AND user_id=?`,
-        [id,userId],
+        sql,
+        [id,userid],
         (error,result)=>{
             if(error){
                 res.status(500).json(error)
-                console.error(`Error deleting todo with id ${id}: ${error}`);
             }else{
-                res.status(204).json(`Succefuly deleted todo ${id}`)
-                console.log(`Succefuly deleted todo ${id}`);
+                res.status(204)
             }
         }
     )
+    
+    
 }
 
 const getTodos=(req,res)=>{
@@ -75,10 +75,11 @@ const getTodos=(req,res)=>{
     return;
 }
 
+
 const updateTodo=(req,res)=>{
     const userId=req.auth.userid;
     const {id}=req.params;
-    const {taskName,description, priority,isCompleted,dueDate,category,tags}=req.body;
+    const {task_name,description, priority,is_completed,due_date,category,tags}=req.body;
     const updates = [];
     const params = [];
 
