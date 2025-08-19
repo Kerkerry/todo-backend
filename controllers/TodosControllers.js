@@ -1,15 +1,17 @@
 import Connection from "../models/db_connection.js";
-const AddTodo=(req,res)=>{        
-        const {taskName,description, priority,isCompleted,dueDate, category,tags}=req.body;
-        const userId=req.auth.userid;
+const AddTodo=(req,res)=>{  
+        const {userid}=req.auth;
+        const {task_name,description, priority,is_completed,due_date, category,tags}=req.body;
         Connection.query(
             `INSERT INTO todos (id,user_id,task_name, description, is_completed, due_date, priority, category, tags) 
             VALUES(?,?,?,?,?,?,?,?,?);`,
-            [String(Date.now()),userId,taskName,description,isCompleted,dueDate,priority,category,JSON.stringify(tags)],
+            [String(Date.now()),userid,task_name,description,is_completed,due_date,priority,category,JSON.stringify(tags)],
             (error,result)=>{
                 if(error){
+                    console.error(error);
                     res.status(500).json(`Error occured while creating task: ${error}`)
                 }else{
+                    console.log(result);
                     res.status(201).json(result)
                 }
             }
