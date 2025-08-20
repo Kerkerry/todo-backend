@@ -1,22 +1,24 @@
 import express from 'express'
 import TodosControllers from '../controllers/TodosControllers.js'
 import AuthController from '../controllers/AuthController.js'
-
 import { expressjwt } from "express-jwt";
 
-const SECRET_KEY='todo-app-user-secret-key'
+export default (io) => {
+    const SECRET_KEY = 'todo-app-user-secret-key'
+    const token = expressjwt({ secret: SECRET_KEY, algorithms: ['HS256'] })
+    const Router = express.Router()
 
-const token=expressjwt({ secret: SECRET_KEY, algorithms: ['HS256'] })
+    // Correctly pass the function reference. Express will provide req, res.
+    Router.get('/', token, TodosControllers.getTodos)
+    
+    Router.post('/signup', AuthController.signup)
+    Router.post('/signin', AuthController.signin)
 
-
-const Router=express.Router()
-
-Router.get('/',token, TodosControllers.getTodos)
-Router.post('/signup',AuthController.signup)
-Router.post('/signin',AuthController.signin)
-Router.put('/update-todo/:id',token,TodosControllers.updateTodo)
-Router.put('/toggle-todo',token,TodosControllers.toggleTodo)
-Router.post('/add-todo',token,TodosControllers.AddTodo)
-Router.delete('/delete-todo/:id',token,TodosControllers.deleteTodo)
-
-export default Router
+    // Wrap the controller functions that need the 'io' object
+    Router.put('/update-todo/:id', token, (req, res) => TodosControllers.updateTodo(io, req, res))
+    Router.put('/toggle-todo', token, (req, res) => TodosControllers.toggleTodo(io, req, res))
+    Router.post('/add-todo', token, (req, res) => TodosControllers.AddTodo(io, req, res))
+    Router.delete('/delete-todo/:id', token, (req, res) => TodosControllers.deleteTodo(io, req, res))
+    
+    return Router
+}

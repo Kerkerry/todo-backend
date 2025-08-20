@@ -1,24 +1,25 @@
 import Connection from "../models/db_connection.js";
-const AddTodo=(req,res)=>{  
+const AddTodo=(io,req,res)=>{  
         const {userid}=req.auth;
         const {task_name,description, priority,is_completed,due_date, category,tags}=req.body;
+        const id=String(Date.now());
         Connection.query(
             `INSERT INTO todos (id,user_id,task_name, description, is_completed, due_date, priority, category, tags) 
             VALUES(?,?,?,?,?,?,?,?,?);`,
-            [String(Date.now()),userid,task_name,description,is_completed,due_date,priority,category,JSON.stringify(tags)],
+            [id,userid,task_name,description,is_completed,due_date,priority,category,JSON.stringify(tags)],
             (error,result)=>{
                 if(error){
                     console.error(error);
                     res.status(500).json(`Error occured while creating task: ${error}`)
                 }else{
-                    console.log(result);
+                    io.emit('todo_created',id)
                     res.status(201).json(result)
                 }
             }
         )
 }
 
-const toggleTodo=(req,res)=>{
+const toggleTodo=(io,req,res)=>{
     const {id,user_id,is_completed}=req.body[0]
 
     Connection.query(
@@ -28,13 +29,14 @@ const toggleTodo=(req,res)=>{
             if(error){
                 res.status(500).json({message:'An error occured'})
             }else{
+                io.emit('todo_changed',id)
                 res.status(200).json({message:'Toggled successfuly'})
             }
         }
     )
 }
 
-const deleteTodo=(req,res)=>{
+const deleteTodo=(io,req,res)=>{
     const {id}=req.params;
     const {userid}=req.auth;
     const sql=`DELETE FROM todos WHERE id=? AND user_id=?`;
@@ -45,6 +47,7 @@ const deleteTodo=(req,res)=>{
             if(error){
                 res.status(500).json(error)
             }else{
+                io.emit('todo_deleted',id)
                 res.status(204)
             }
         }
@@ -78,7 +81,7 @@ const getTodos=(req,res)=>{
 }
 
 
-const updateTodo=(req,res)=>{
+const updateTodo=(io,req,res)=>{
     const userId=req.auth.userid;
     const {id}=req.params;
     const {task_name,description, priority,is_completed,due_date,category,tags}=req.body;
@@ -99,7 +102,7 @@ const updateTodo=(req,res)=>{
     }
     if (due_date !== undefined) {
         updates.push('due_date = ?');
-        params.push(dueDate);
+        params.push(due_date);
     }
     if (priority !== undefined) {
         updates.push('priority = ?');
@@ -132,6 +135,7 @@ const updateTodo=(req,res)=>{
             if(error){
                 console.error(`Error updating todo with id ${id}: ${error}`);
             }else{
+                io.emit('todo_updated',result)
                 console.log(`Succefuly updated todo ${id}: ${result}`);
                 
             }
